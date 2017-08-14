@@ -1,0 +1,22 @@
+# - name: downgrade docker-py due to https://github.com/ansible/ansible-modules-core/issues/4246
+#   pip: name=docker-py executable=/home/core/bin/pip version=1.9.0
+- name: create certificates folder
+  file: path="{{path}}/certificates" state=directory
+
+- name: create conf.d folder
+  file: path="{{path}}/conf.d" state=directory
+
+- name: deploy nginx and certbot services definition
+  template: src="files/{{item}}.service.j2" dest="/etc/systemd/system/{{item}}.service"
+  become: true
+  become_user: root
+  with_items: ["nginx-proxy", "certbot"]
+
+- name: start nginx service
+  systemd: 
+    name: "{{item}}"
+    daemon_reload: true
+    state: started
+  become: true
+  become_user: root
+  with_items: ["nginx-proxy", "certbot"]

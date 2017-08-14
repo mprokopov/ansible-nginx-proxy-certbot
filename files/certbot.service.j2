@@ -1,0 +1,19 @@
+Description=certbot.service
+After=nginx-proxy.service
+Requires=nginx-proxy.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill certbot
+ExecStartPre=-/usr/bin/docker rm certbot
+ExecStartPre=/usr/bin/docker pull jrcs/letsencrypt-nginx-proxy-companion
+ExecStart=/usr/bin/docker run \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -v {{path}}/certificates:/etc/nginx/certs:rw \
+  -v {{path}}/vhost.d:/etc/nginx/vhost.d \
+  --volumes-from nginx-proxy \
+  --name certbot \
+  jrcs/letsencrypt-nginx-proxy-companion
+
+[Install]
+WantedBy=multi-user.target
